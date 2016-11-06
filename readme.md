@@ -13,7 +13,7 @@ This is draft to markdown library I wrote for one of my projects. I am open-sour
 ```
 import draftToMarkdown from 'draftjs-to-markdown';
 
-const contentState = editorState.getCurrentContent();
+const rawContentState = convertToRaw(editorState.getCurrentContent());
 const markup = draftToMarkdown(contentState);
 ```
 
