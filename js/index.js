@@ -41,7 +41,7 @@ function isAtomicBlock(block: Object): boolean {
 */
 function getEntityMarkdown(entityMap: Object, entityKey: number, text: string): string {
   const entity = entityMap[entityKey];
-  if (entity.type === 'LINK') {
+  if (entity.type === 'LINK' || entity.type === 'MENTION') {
     return `[${text}](${entity.data.url})`;
   }
   if (entity.type === 'IMAGE') {
