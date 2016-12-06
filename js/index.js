@@ -41,8 +41,8 @@ function isAtomicBlock(block: Object): boolean {
 */
 function getEntityMarkdown(entityMap: Object, entityKey: number, text: string): string {
   const entity = entityMap[entityKey];
-  if (entity.type === 'LINK' || entity.type === 'MENTION') {
-    return `[${text}](${entity.data.url})`;
+  if (entity.type === 'LINK') {
+    return `[${entity.data.title}](${entity.data.url})`;
   }
   if (entity.type === 'IMAGE') {
     return `!(${entity.data.src})`;
@@ -53,14 +53,74 @@ function getEntityMarkdown(entityMap: Object, entityKey: number, text: string): 
   return text;
 }
 
+
 /**
-* The function returns an array of entity sections in blocks.
+* The function returns an array of mention-sections in blocks.
+* These will be areas in block which have mentions applicable to them.
+*/
+function getMentionRanges(blockText: string, mentionConfig: Object): Array<Object> {
+  const sections = [];
+  if (mentionConfig) {
+    let text = blockText;
+    let startIndex = 0;
+    let counter = 0;
+    for (;text.length > 0 && startIndex >= 0;) {
+      if (text[0] === mentionConfig.trigger) {
+        startIndex = 0;
+        counter = 0;
+        text = text.substr(mentionConfig.trigger.length);
+      } else {
+        startIndex = text.indexOf(mentionConfig.separator + mentionConfig.trigger);
+        if (startIndex >= 0) {
+          text = text.substr(startIndex + (mentionConfig.separator + mentionConfig.trigger).length);
+          counter += startIndex + mentionConfig.separator.length;
+        }
+      }
+      if (startIndex >= 0) {
+        const endIndex =
+          blockText.indexOf(mentionConfig.separator) >= 0
+          ? text.indexOf(mentionConfig.separator)
+          : text.length;
+        const mentionText = text.substr(0, endIndex);
+        const mentionPresent =
+          mentionConfig.suggestions.filter(suggestion => suggestion.value === mentionText);
+        if (mentionPresent && mentionPresent.length > 0) {
+          sections.push({
+            offset: counter,
+            length: mentionText.length + mentionConfig.trigger.length,
+            mention: mentionPresent[0],
+            type: 'MENTION',
+          });
+        }
+        counter += mentionConfig.trigger.length;
+      }
+    }
+  }
+  return sections;
+}
+
+/**
+* The function returns an array of entity-sections in blocks.
 * These will be areas in block which have same entity or no entity applicable to them.
 */
-function getEntitySections(entityRanges: Object, blockLength: number): Array<Object> {
+function getSections(
+  block: Object,
+  mentionConfig: Object
+): Array<Object> {
   const sections = [];
   let lastOffset = 0;
-  entityRanges.forEach((r) => {
+  let sectionRanges = block.entityRanges.map((range) => {
+    const { offset, length, key } = range;
+    return {
+      offset,
+      length,
+      key,
+      type: 'ENTITY',
+    };
+  });
+  sectionRanges = sectionRanges.concat(getMentionRanges(block.text, mentionConfig));
+  sectionRanges = sectionRanges.sort((s1, s2) => s1.offset - s2.offset);
+  sectionRanges.forEach((r) => {
     if (r.offset > lastOffset) {
       sections.push({
         start: lastOffset,
@@ -71,13 +131,15 @@ function getEntitySections(entityRanges: Object, blockLength: number): Array<Obj
       start: r.offset,
       end: r.offset + r.length,
       entityKey: r.key,
+      type: r.type,
+      mention: r.mention,
     });
     lastOffset = r.offset + r.length;
   });
-  if (lastOffset < blockLength) {
+  if (lastOffset < block.text.length) {
     sections.push({
       start: lastOffset,
-      end: blockLength,
+      end: block.text.length,
     });
   }
   return sections;
@@ -245,7 +307,7 @@ function getSectionText(text: Array<string>): string {
 /**
 * Function returns markdown for inline style symbols.
 */
-export function addInlineStyleMarkup(style: string, content: string): string {
+export function addInlineStyleMarkdown(style: string, content: string): string {
   if (style === 'BOLD') {
     return `**${content}**`;
   } else if (style === 'ITALIC') {
@@ -271,7 +333,7 @@ export function addInlineStyleMarkup(style: string, content: string): string {
 function getStyleTagSectionMarkdown(styles: Object, text: string): string {
   let content = text;
   forEach(styles, (style, value) => {
-    content = addInlineStyleMarkup(style, content, value);
+    content = addInlineStyleMarkdown(style, content, value);
   });
   return content;
 }
@@ -307,13 +369,13 @@ export function addStylePropertyMarkdown(styleSection: Object): string {
 * An entity section is a continuous section in a block
 * to which same entity or no entity is applicable.
 */
-function getEntitySectionMarkdown(block: Object, entityMap: Object, entitySection: Object): string {
+function getSectionMarkdown(block: Object, entityMap: Object, section: Object): string {
   const entitySectionMarkdown = [];
   const styleSections = getStyleSections(
     block,
     ['BOLD', 'ITALIC', 'UNDERLINE', 'STRIKETHROUGH', 'CODE', 'SUPERSCRIPT', 'SUBSCRIPT'],
-    entitySection.start,
-    entitySection.end
+    section.start,
+    section.end
   );
   let styleSectionText = '';
   styleSections.forEach((styleSection) => {
@@ -331,8 +393,13 @@ function getEntitySectionMarkdown(block: Object, entityMap: Object, entitySectio
   });
   entitySectionMarkdown.push(styleSectionText);
   let sectionText = entitySectionMarkdown.join('');
-  if (entitySection.entityKey !== undefined && entitySection.entityKey !== null) {
-    sectionText = getEntityMarkdown(entityMap, entitySection.entityKey, sectionText);
+  if (section.type === 'ENTITY') {
+    if (section.entityKey !== undefined && section.entityKey !== null) {
+      sectionText = getEntityMarkdown(entityMap, section.entityKey, sectionText);
+    }
+  } else if (section.type === 'MENTION') {
+    const { mention } = section;
+    sectionText = `[${sectionText}](${mention.url || mention.text})`;
   }
   return sectionText;
 }
@@ -376,14 +443,18 @@ export function trimTrailingZeros(sectionText: string): string {
 /**
 * Function will return the markdown for block content.
 */
-export function getBlockContentMarkdown(block: Object, entityMap: Object): string {
+export function getBlockContentMarkdown(
+  block: Object,
+  entityMap: Object,
+  mentionConfig: Object
+): string {
   if (isAtomicBlock(block)) {
-    return getEntityMarkdown(entityMap, block.entityRanges[0].key);
+    return getEntityMarkdown(entityMap, block.entityRanges[0].key, undefined);
   }
   const blockMarkdown = [];
-  const entitySections = getEntitySections(block.entityRanges, block.text.length);
+  const entitySections = getSections(block, mentionConfig);
   entitySections.forEach((section, index) => {
-    let sectionText = getEntitySectionMarkdown(block, entityMap, section);
+    let sectionText = getSectionMarkdown(block, entityMap, section);
     if (index === 0) {
       sectionText = trimLeadingZeros(sectionText);
     }
@@ -420,10 +491,10 @@ function getBlockStyleProperty(blockData: Object, content: string) {
 /**
 * Function will return markdown for the block.
 */
-function getBlockMarkdown(block: Object, entityMap: Object): string {
+function getBlockMarkdown(block: Object, entityMap: Object, mentionConfig: Object): string {
   const blockMarkdown = [];
   blockMarkdown.push(getBlockTagSymbol(block));
-  let blockContentMarkdown = getBlockContentMarkdown(block, entityMap);
+  let blockContentMarkdown = getBlockContentMarkdown(block, entityMap, mentionConfig);
   if (block.data) {
     blockContentMarkdown = getBlockStyleProperty(block.data, blockContentMarkdown);
   }
@@ -443,13 +514,16 @@ function getDepthPadding(depth: number) {
 /**
 * The function will generate markdown for given draftjs editorContent.
 */
-export default function draftToMarkdown(editorContent: ContentState): string {
+export default function draftToMarkdown(
+  editorContent: ContentState,
+  mentionConfig: Object
+): string {
   const markdown = [];
   if (editorContent) {
     const { blocks, entityMap } = editorContent;
     if (blocks && blocks.length > 0) {
       blocks.forEach((block) => {
-        let content = getBlockMarkdown(block, entityMap);
+        let content = getBlockMarkdown(block, entityMap, mentionConfig);
         if (isList(block.type)) {
           content = getDepthPadding(block.depth) + content;
         }
