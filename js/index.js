@@ -48,7 +48,7 @@ function getEntityMarkdown(entityMap: Object, entityKey: number, text: string): 
     return `!(${entity.data.src})`;
   }
   if (entity.type === 'EMBEDDED_LINK') {
-    return `<iframe width="${entity.data.width}" height="${entity.data.height}" src="${entity.data.link}" frameBorder="0" allowFullScreen />`;
+    return `<iframe width="${entity.data.width}" height="${entity.data.height}" src="${entity.data.src}" frameBorder="0" allowFullScreen />`;
   }
   return text;
 }
