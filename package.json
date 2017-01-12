@@ -46,5 +46,6 @@
     "check": "npm run lint && npm run flow"
   },
   "author": "Jyoti Puri",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": ""
 }
