@@ -265,13 +265,13 @@
 //     });
 //     assert.equal(
 //       markup,
-//       '<span style="color: red;background-color: pink;font-size: 10;font-family: Arial;">test</span>'
+// '<span style="color: red;background-color: pink;font-size: 10;font-family: Arial;">test</span>'
 //     );
 //     markup = addStylePropertyMarkup({ styles: { COLOR: 'red' }, text: ['t', 'e', 's', 't'] });
 //     assert.equal(markup, '<span style="color: red;">test</span>');
 //     markup = addStylePropertyMarkup({ styles: { BGCOLOR: 'pink' }, text: ['t', 'e', 's', 't'] });
 //     assert.equal(markup, '<span style="background-color: pink;">test</span>');
-//     markup = addStylePropertyMarkup({ styles: { FONTFAMILY: 'Arial' }, text: ['t', 'e', 's', 't'] });
+// markup = addStylePropertyMarkup({ styles: { FONTFAMILY: 'Arial' }, text: ['t', 'e', 's', 't'] });
 //     assert.equal(markup, '<span style="font-family: Arial;">test</span>');
 //     markup = addStylePropertyMarkup({ styles: { BOLD: true }, text: ['t', 'e', 's', 't'] });
 //     assert.equal(markup, 'test');

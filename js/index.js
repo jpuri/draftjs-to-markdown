@@ -1,6 +1,5 @@
 /* @flow */
 
-import { ContentState } from 'draft-js';
 import { isEmptyString, forEach, isList } from './common';
 
 /**
@@ -131,7 +130,7 @@ function getStyleArrayForBlock(block: Object): Object {
 export function sameStyleAsPrevious(
   inlineStyles: Object,
   styles: Array<string>,
-  index: number
+  index: number,
 ): boolean {
   let sameStyled = true;
   if (index > 0 && index < inlineStyles.length) {
@@ -193,7 +192,7 @@ function getStyleSections(
   block: Object,
   styles: Array<string>,
   start: number,
-  end: number
+  end: number,
 ): Array<Object> {
   const styleSections = [];
   const { text } = block;
@@ -202,7 +201,9 @@ function getStyleSections(
     let section;
     for (let i = start; i < end; i += 1) {
       if (i !== start && sameStyleAsPrevious(inlineStyles, styles, i)) {
+        // $FlowFixMe
         section.text.push(text[i]);
+        // $FlowFixMe
         section.end = i + 1;
       } else {
         section = {
@@ -313,7 +314,7 @@ function getEntitySectionMarkdown(block: Object, entityMap: Object, entitySectio
     block,
     ['BOLD', 'ITALIC', 'UNDERLINE', 'STRIKETHROUGH', 'CODE', 'SUPERSCRIPT', 'SUBSCRIPT'],
     entitySection.start,
-    entitySection.end
+    entitySection.end,
   );
   let styleSectionText = '';
   styleSections.forEach((styleSection) => {
@@ -321,7 +322,7 @@ function getEntitySectionMarkdown(block: Object, entityMap: Object, entitySectio
       block,
       ['COLOR', 'BGCOLOR', 'FONTSIZE', 'FONTFAMILY'],
       styleSection.start,
-      styleSection.end
+      styleSection.end,
     );
     let stylePropertySectionText = '';
     stylePropertySections.forEach((stylePropertySection) => {
@@ -378,7 +379,7 @@ export function trimTrailingZeros(sectionText: string): string {
 */
 export function getBlockContentMarkdown(block: Object, entityMap: Object): string {
   if (isAtomicBlock(block)) {
-    return getEntityMarkdown(entityMap, block.entityRanges[0].key);
+    return getEntityMarkdown(entityMap, block.entityRanges[0].key, '');
   }
   const blockMarkdown = [];
   const entitySections = getEntitySections(block.entityRanges, block.text.length);
@@ -443,7 +444,7 @@ function getDepthPadding(depth: number) {
 /**
 * The function will generate markdown for given draftjs editorContent.
 */
-export default function draftToMarkdown(editorContent: ContentState): string {
+export default function draftToMarkdown(editorContent: Object): string {
   const markdown = [];
   if (editorContent) {
     const { blocks, entityMap } = editorContent;
