@@ -17,10 +17,10 @@
     "eslint": "^3.13.1",
     "eslint-config-airbnb": "^14.0.0",
     "eslint-plugin-import": "2.2.0",
-    "eslint-plugin-jsx-a11y": "^3.0.2",
+    "eslint-plugin-jsx-a11y": "^4.0.0",
     "eslint-plugin-mocha": "^4.8.0",
     "eslint-plugin-react": "^6.9.0",
-    "flow-bin": "^0.37.4",
+    "flow-bin": "^0.38.0",
     "immutable": "^3.8.1",
     "jsdom": "^9.9.1",
     "mocha": "^3.2.0",
@@ -29,7 +29,7 @@
     "react-dom": "^15.4.2",
     "rimraf": "^2.5.4",
     "sinon": "^1.17.7",
-    "webpack": "^1.14.0",
+    "webpack": "^2.2.1",
     "webpack-dev-middleware": "^1.9.0"
   },
   "repository": {
