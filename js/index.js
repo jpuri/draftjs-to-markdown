@@ -66,7 +66,6 @@ function getEntityMarkdown(
   return text;
 }
 
-
 /**
 * The function returns an array of hashtag-sections in blocks.
 * These will be areas in block which have hashtags applicable to them.
