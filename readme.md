@@ -14,8 +14,20 @@ This is draft to markdown library I wrote for one of my projects. I am open-sour
 import draftToMarkdown from 'draftjs-to-markdown';
 
 const rawContentState = convertToRaw(editorState.getCurrentContent());
-const markup = draftToMarkdown(contentState);
+const markup = draftToMarkdown(contentState, hashConfig, customEntityTransform);
 ```
+The function parameters are:
+1. **contentState**: Its instance of  [RawDraftContentState](https://facebook.github.io/draft-js/docs/api-reference-data-conversion.html#content)
+2. **hashConfig**: Its configuration object for hashtag, its required only if hashtags are used. If the object is not defined hashtags will be output as simple text in the markdown.
+    ```
+    hashConfig = {
+      trigger: '#',
+      separator: ' ',
+    }
+    ```
+    Here trigger is character that marks starting of hashtag (default '#') and separator is character that separates characters (default ' ').
+
+3. **customEntityTransform**: Its function to render custom defined entities by user, its also optional.
 
 ## Supported conversions
 Following is the list of conversions it supports:
@@ -50,11 +62,15 @@ Following is the list of conversions it supports:
 
 5. Converts entity range of type link to :`[Link Text](Link URL)`.
 
-6. Converts atomic entity image to image tag using entity data src for image source: `!(Image Source)`.
+6. Converts hashtags to :`[hashtag](hashtag)`.
 
-7. Converts embedded links to HTML iframe tags <iframe ... />.
+7. Converts atomic entity image to image tag using entity data src for image source: `!(Image Source)`.
 
-8. For block level styles like text-alignment add `<span>` with `style` property around block content.
+8. Converts embedded links to HTML iframe tags <iframe ... />.
+
+9. For block level styles like text-alignment add `<span>` with `style` property around block content.
+
+10. Supports using function `customEntityTransform` for custom draftjs entities.
 
 ## License
 MIT.

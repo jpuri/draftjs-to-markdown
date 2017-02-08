@@ -1,6 +1,5 @@
 /* @flow */
 
-import { ContentState } from 'draft-js';
 import { isEmptyString, forEach, isList } from './common';
 
 /**
@@ -39,8 +38,22 @@ function isAtomicBlock(block: Object): boolean {
 /**
 * Function will return markdown for Entity.
 */
-function getEntityMarkdown(entityMap: Object, entityKey: number, text: string): string {
+function getEntityMarkdown(
+  entityMap: Object,
+  entityKey: number,
+  text: string,
+  customEntityTransform: Function
+): string {
   const entity = entityMap[entityKey];
+  if (typeof customEntityTransform === 'function') {
+    const html = customEntityTransform(entity, text);
+    if (html) {
+      return html;
+    }
+  }
+  if (entity.type === 'MENTION') {
+    return `[${text}](${entity.data.url})`;
+  }
   if (entity.type === 'LINK') {
     return `[${entity.data.title}](${entity.data.url})`;
   }
@@ -48,51 +61,50 @@ function getEntityMarkdown(entityMap: Object, entityKey: number, text: string): 
     return `!(${entity.data.src})`;
   }
   if (entity.type === 'EMBEDDED_LINK') {
-    return `<iframe width="${entity.data.width}" height="${entity.data.height}" src="${entity.data.link}" frameBorder="0" allowFullScreen />`;
+    return `<iframe width="${entity.data.width}" height="${entity.data.height}" src="${entity.data.src}" frameBorder="0" allowFullScreen />`;
   }
   return text;
 }
 
 
 /**
-* The function returns an array of mention-sections in blocks.
-* These will be areas in block which have mentions applicable to them.
+* The function returns an array of hashtag-sections in blocks.
+* These will be areas in block which have hashtags applicable to them.
 */
-function getMentionRanges(blockText: string, mentionConfig: Object): Array<Object> {
+function getHashtagRanges(blockText: string, hashConfig: Object): Array<Object> {
   const sections = [];
-  if (mentionConfig) {
-    let text = blockText;
-    let startIndex = 0;
+  if (hashConfig) {
     let counter = 0;
+    let startIndex = 0;
+    let text = blockText;
+    const trigger = hashConfig.trigger || '#';
+    const separator = hashConfig.separator || ' ';
     for (;text.length > 0 && startIndex >= 0;) {
-      if (text[0] === mentionConfig.trigger) {
+      if (text[0] === trigger) {
         startIndex = 0;
         counter = 0;
-        text = text.substr(mentionConfig.trigger.length);
+        text = text.substr(trigger.length);
       } else {
-        startIndex = text.indexOf(mentionConfig.separator + mentionConfig.trigger);
+        startIndex = text.indexOf(separator + trigger);
         if (startIndex >= 0) {
-          text = text.substr(startIndex + (mentionConfig.separator + mentionConfig.trigger).length);
-          counter += startIndex + mentionConfig.separator.length;
+          text = text.substr(startIndex + (separator + trigger).length);
+          counter += startIndex + separator.length;
         }
       }
       if (startIndex >= 0) {
         const endIndex =
-          blockText.indexOf(mentionConfig.separator) >= 0
-          ? text.indexOf(mentionConfig.separator)
+          text.indexOf(separator) >= 0
+          ? text.indexOf(separator)
           : text.length;
-        const mentionText = text.substr(0, endIndex);
-        const mentionPresent =
-          mentionConfig.suggestions.filter(suggestion => suggestion.value === mentionText);
-        if (mentionPresent && mentionPresent.length > 0) {
+        const hashtagText = text.substr(0, endIndex);
+        if (hashtagText && hashtagText.length > 0) {
           sections.push({
             offset: counter,
-            length: mentionText.length + mentionConfig.trigger.length,
-            mention: mentionPresent[0],
-            type: 'MENTION',
+            length: hashtagText.length + trigger.length,
+            type: 'HASHTAG',
           });
         }
-        counter += mentionConfig.trigger.length;
+        counter += trigger.length;
       }
     }
   }
@@ -105,7 +117,7 @@ function getMentionRanges(blockText: string, mentionConfig: Object): Array<Objec
 */
 function getSections(
   block: Object,
-  mentionConfig: Object
+  hashConfig: Object
 ): Array<Object> {
   const sections = [];
   let lastOffset = 0;
@@ -118,7 +130,7 @@ function getSections(
       type: 'ENTITY',
     };
   });
-  sectionRanges = sectionRanges.concat(getMentionRanges(block.text, mentionConfig));
+  sectionRanges = sectionRanges.concat(getHashtagRanges(block.text, hashConfig));
   sectionRanges = sectionRanges.sort((s1, s2) => s1.offset - s2.offset);
   sectionRanges.forEach((r) => {
     if (r.offset > lastOffset) {
@@ -132,7 +144,6 @@ function getSections(
       end: r.offset + r.length,
       entityKey: r.key,
       type: r.type,
-      mention: r.mention,
     });
     lastOffset = r.offset + r.length;
   });
@@ -193,7 +204,7 @@ function getStyleArrayForBlock(block: Object): Object {
 export function sameStyleAsPrevious(
   inlineStyles: Object,
   styles: Array<string>,
-  index: number
+  index: number,
 ): boolean {
   let sameStyled = true;
   if (index > 0 && index < inlineStyles.length) {
@@ -255,7 +266,7 @@ function getStyleSections(
   block: Object,
   styles: Array<string>,
   start: number,
-  end: number
+  end: number,
 ): Array<Object> {
   const styleSections = [];
   const { text } = block;
@@ -264,7 +275,9 @@ function getStyleSections(
     let section;
     for (let i = start; i < end; i += 1) {
       if (i !== start && sameStyleAsPrevious(inlineStyles, styles, i)) {
+        // $FlowFixMe
         section.text.push(text[i]);
+        // $FlowFixMe
         section.end = i + 1;
       } else {
         section = {
@@ -353,7 +366,7 @@ export function addStylePropertyMarkdown(styleSection: Object): string {
       styleString += `background-color: ${styles.BGCOLOR};`;
     }
     if (styles.FONTSIZE) {
-      styleString += `font-size: ${styles.FONTSIZE};`;
+      styleString += `font-size: ${styles.FONTSIZE}px;`;
     }
     if (styles.FONTFAMILY) {
       styleString += `font-family: ${styles.FONTFAMILY};`;
@@ -369,13 +382,18 @@ export function addStylePropertyMarkdown(styleSection: Object): string {
 * An entity section is a continuous section in a block
 * to which same entity or no entity is applicable.
 */
-function getSectionMarkdown(block: Object, entityMap: Object, section: Object): string {
+function getSectionMarkdown(
+  block: Object,
+  entityMap: Object,
+  section: Object,
+  customEntityTransform: Function
+): string {
   const entitySectionMarkdown = [];
   const styleSections = getStyleSections(
     block,
     ['BOLD', 'ITALIC', 'UNDERLINE', 'STRIKETHROUGH', 'CODE', 'SUPERSCRIPT', 'SUBSCRIPT'],
     section.start,
-    section.end
+    section.end,
   );
   let styleSectionText = '';
   styleSections.forEach((styleSection) => {
@@ -383,7 +401,7 @@ function getSectionMarkdown(block: Object, entityMap: Object, section: Object): 
       block,
       ['COLOR', 'BGCOLOR', 'FONTSIZE', 'FONTFAMILY'],
       styleSection.start,
-      styleSection.end
+      styleSection.end,
     );
     let stylePropertySectionText = '';
     stylePropertySections.forEach((stylePropertySection) => {
@@ -395,11 +413,15 @@ function getSectionMarkdown(block: Object, entityMap: Object, section: Object): 
   let sectionText = entitySectionMarkdown.join('');
   if (section.type === 'ENTITY') {
     if (section.entityKey !== undefined && section.entityKey !== null) {
-      sectionText = getEntityMarkdown(entityMap, section.entityKey, sectionText);
+      sectionText = getEntityMarkdown(
+        entityMap,
+        section.entityKey,
+        sectionText,
+        customEntityTransform,
+      );
     }
-  } else if (section.type === 'MENTION') {
-    const { mention } = section;
-    sectionText = `[${sectionText}](${mention.url || mention.text})`;
+  } else if (section.type === 'HASHTAG') {
+    sectionText = `[${sectionText}](${sectionText})`;
   }
   return sectionText;
 }
@@ -446,13 +468,19 @@ export function trimTrailingZeros(sectionText: string): string {
 export function getBlockContentMarkdown(
   block: Object,
   entityMap: Object,
-  mentionConfig: Object
+  hashConfig: Object,
+  customEntityTransform: Function,
 ): string {
   if (isAtomicBlock(block)) {
-    return getEntityMarkdown(entityMap, block.entityRanges[0].key, undefined);
+    return getEntityMarkdown(
+      entityMap,
+      block.entityRanges[0].key,
+      undefined,
+      customEntityTransform,
+    );
   }
   const blockMarkdown = [];
-  const entitySections = getSections(block, mentionConfig);
+  const entitySections = getSections(block, hashConfig);
   entitySections.forEach((section, index) => {
     let sectionText = getSectionMarkdown(block, entityMap, section);
     if (index === 0) {
@@ -491,10 +519,16 @@ function getBlockStyleProperty(blockData: Object, content: string) {
 /**
 * Function will return markdown for the block.
 */
-function getBlockMarkdown(block: Object, entityMap: Object, mentionConfig: Object): string {
+function getBlockMarkdown(
+  block: Object,
+  entityMap: Object,
+  hashConfig: Object,
+  customEntityTransform: Function
+): string {
   const blockMarkdown = [];
   blockMarkdown.push(getBlockTagSymbol(block));
-  let blockContentMarkdown = getBlockContentMarkdown(block, entityMap, mentionConfig);
+  let blockContentMarkdown =
+    getBlockContentMarkdown(block, entityMap, hashConfig, customEntityTransform);
   if (block.data) {
     blockContentMarkdown = getBlockStyleProperty(block.data, blockContentMarkdown);
   }
@@ -516,14 +550,15 @@ function getDepthPadding(depth: number) {
 */
 export default function draftToMarkdown(
   editorContent: ContentState,
-  mentionConfig: Object
+  hashConfig: Object,
+  customEntityTransform: Function,
 ): string {
   const markdown = [];
   if (editorContent) {
     const { blocks, entityMap } = editorContent;
     if (blocks && blocks.length > 0) {
       blocks.forEach((block) => {
-        let content = getBlockMarkdown(block, entityMap, mentionConfig);
+        let content = getBlockMarkdown(block, entityMap, hashConfig, customEntityTransform);
         if (isList(block.type)) {
           content = getDepthPadding(block.depth) + content;
         }
