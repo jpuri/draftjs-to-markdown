@@ -29,7 +29,7 @@ export function getBlockTagSymbol(block: Object): string {
 * Function to check if the block is an atomic entity block.
 */
 function isAtomicBlock(block: Object): boolean {
-  if (block.entityRanges.length > 0 && isEmptyString(block.text)) {
+  if (block.entityRanges.length > 0 && !isEmptyString(block.text)) {
     return true;
   }
   return false;
