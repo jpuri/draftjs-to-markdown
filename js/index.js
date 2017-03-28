@@ -29,7 +29,7 @@ export function getBlockTagSymbol(block: Object): string {
 * Function to check if the block is an atomic entity block.
 */
 function isAtomicBlock(block: Object): boolean {
-  if (block.entityRanges.length > 0 && !isEmptyString(block.text)) {
+  if (block.entityRanges.length > 0 && isEmptyString(block.text)) {
     return true;
   }
   return false;
@@ -481,7 +481,7 @@ export function getBlockContentMarkdown(
   const blockMarkdown = [];
   const entitySections = getSections(block, hashConfig);
   entitySections.forEach((section, index) => {
-    let sectionText = getSectionMarkdown(block, entityMap, section);
+    let sectionText = getSectionMarkdown(block, entityMap, section, customEntityTransform);
     if (index === 0) {
       sectionText = trimLeadingZeros(sectionText);
     }
