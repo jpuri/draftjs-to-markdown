@@ -14,7 +14,7 @@ This is draft to markdown library I wrote for one of my projects. I am open-sour
 import draftToMarkdown from 'draftjs-to-markdown';
 
 const rawContentState = convertToRaw(editorState.getCurrentContent());
-const markup = draftToMarkdown(contentState, hashConfig, customEntityTransform);
+const markup = draftToMarkdown(contentState, hashConfig, customEntityTransform, config);
 ```
 The function parameters are:
 
@@ -30,6 +30,23 @@ The function parameters are:
     Here trigger is character that marks starting of hashtag (default '#') and separator is character that separates characters (default ' ').
 
 3. **customEntityTransform**: Its function to render custom defined entities by user, its also optional.
+
+4. **config**: Object to pass configuration options.
+```
+{
+  blockTypesMapping : {/* mappings */},
+  emptyLineBeforeBlock : true
+}
+```
+blockTypesMapping overrides the default markdown syntax. For example, to use an asterisk rather than a dash for unordered-list-item:
+```
+{
+  blockTypesMapping : {
+    'unordered-list-item': '* '
+  }
+}
+```
+By default only one line break is added before a block. Pass ```emptyLineBeforeBlock: true``` to add two line breaks before every block.
 
 ## Supported conversions
 Following is the list of conversions it supports:

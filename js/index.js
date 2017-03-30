@@ -5,7 +5,7 @@ import { isEmptyString, forEach, isList } from './common';
 /**
 * Mapping block-type to corresponding markdown symbol.
 */
-const blockTypesMapping: Object = {
+let blockTypesMapping: Object = {
   unstyled: '',
   'header-one': '# ',
   'header-two': '## ',
@@ -522,7 +522,8 @@ function getBlockMarkdown(
   block: Object,
   entityMap: Object,
   hashConfig: Object,
-  customEntityTransform: Function
+  customEntityTransform: Function,
+  config: Object
 ): string {
   const blockMarkdown = [];
   blockMarkdown.push(getBlockTagSymbol(block));
@@ -532,7 +533,8 @@ function getBlockMarkdown(
     blockContentMarkdown = getBlockStyleProperty(block.data, blockContentMarkdown);
   }
   blockMarkdown.push(blockContentMarkdown);
-  blockMarkdown.push('\n');
+  const newline = config && config.emptyLineBeforeBlock && config.emptyLineBeforeBlock === true ? '\n\n' : '\n';
+  blockMarkdown.push(newline);
   return blockMarkdown.join('');
 }
 
@@ -551,13 +553,17 @@ export default function draftToMarkdown(
   editorContent: ContentState,
   hashConfig: Object,
   customEntityTransform: Function,
+  config: Object
 ): string {
   const markdown = [];
   if (editorContent) {
+    if (config && config.blockTypesMapping) {
+      blockTypesMapping = Object.assign(blockTypesMapping, config.blockTypesMapping);
+    }
     const { blocks, entityMap } = editorContent;
     if (blocks && blocks.length > 0) {
       blocks.forEach((block) => {
-        let content = getBlockMarkdown(block, entityMap, hashConfig, customEntityTransform);
+        let content = getBlockMarkdown(block, entityMap, hashConfig, customEntityTransform, config);
         if (isList(block.type)) {
           content = getDepthPadding(block.depth) + content;
         }
