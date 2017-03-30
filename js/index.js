@@ -481,7 +481,7 @@ export function getBlockContentMarkdown(
   const blockMarkdown = [];
   const entitySections = getSections(block, hashConfig);
   entitySections.forEach((section, index) => {
-    let sectionText = getSectionMarkdown(block, entityMap, section);
+    let sectionText = getSectionMarkdown(block, entityMap, section, customEntityTransform);
     if (index === 0) {
       sectionText = trimLeadingZeros(sectionText);
     }
