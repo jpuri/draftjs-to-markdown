@@ -5,7 +5,7 @@ import { isEmptyString, forEach, isList } from './common';
 /**
 * Mapping block-type to corresponding markdown symbol.
 */
-let blockTypesMapping: Object = {
+let defaultBlockTypesMapping: Object = {
   unstyled: '',
   'header-one': '# ',
   'header-two': '## ',
@@ -17,13 +17,6 @@ let blockTypesMapping: Object = {
   'ordered-list-item': '1. ',
   blockquote: '> ',
 };
-
-/**
-* Function will return markdown symbol for a block.
-*/
-export function getBlockTagSymbol(block: Object): string {
-  return block.type && blockTypesMapping[block.type];
-}
 
 /**
 * Function to check if the block is an atomic entity block.
@@ -55,7 +48,7 @@ function getEntityMarkdown(
     return `[${text}](${entity.data.url})`;
   }
   if (entity.type === 'LINK') {
-    return `[${entity.data.title}](${entity.data.url})`;
+    return `[${text}](${entity.data.url})`;
   }
   if (entity.type === 'IMAGE') {
     return `!(${entity.data.src})`;
@@ -520,21 +513,21 @@ function getBlockStyleProperty(blockData: Object, content: string) {
 */
 function getBlockMarkdown(
   block: Object,
+  blockTypesMapping: Object,
   entityMap: Object,
   hashConfig: Object,
   customEntityTransform: Function,
   config: Object
 ): string {
   const blockMarkdown = [];
-  blockMarkdown.push(getBlockTagSymbol(block));
+  blockMarkdown.push(blockTypesMapping[block.type]);
   let blockContentMarkdown =
     getBlockContentMarkdown(block, entityMap, hashConfig, customEntityTransform);
   if (block.data) {
     blockContentMarkdown = getBlockStyleProperty(block.data, blockContentMarkdown);
   }
   blockMarkdown.push(blockContentMarkdown);
-  const newline = config && config.emptyLineBeforeBlock && config.emptyLineBeforeBlock === true ? '\n\n' : '\n';
-  blockMarkdown.push(newline);
+  blockMarkdown.push(config && config.emptyLineBeforeBlock ? '\n\n' : '\n');
   return blockMarkdown.join('');
 }
 
@@ -557,13 +550,13 @@ export default function draftToMarkdown(
 ): string {
   const markdown = [];
   if (editorContent) {
-    if (config && config.blockTypesMapping) {
-      blockTypesMapping = Object.assign(blockTypesMapping, config.blockTypesMapping);
-    }
+    const blockTypesMapping = { ...defaultBlockTypesMapping, ...(config && config.blockTypesMapping && config.blockTypesMapping) };
+    console.log('config', config)
+    console.log('blockTypesMapping', blockTypesMapping)
     const { blocks, entityMap } = editorContent;
     if (blocks && blocks.length > 0) {
       blocks.forEach((block) => {
-        let content = getBlockMarkdown(block, entityMap, hashConfig, customEntityTransform, config);
+        let content = getBlockMarkdown(block, blockTypesMapping, entityMap, hashConfig, customEntityTransform, config);
         if (isList(block.type)) {
           content = getDepthPadding(block.depth) + content;
         }
