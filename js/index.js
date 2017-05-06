@@ -551,8 +551,6 @@ export default function draftToMarkdown(
   const markdown = [];
   if (editorContent) {
     const blockTypesMapping = { ...defaultBlockTypesMapping, ...(config && config.blockTypesMapping && config.blockTypesMapping) };
-    console.log('config', config)
-    console.log('blockTypesMapping', blockTypesMapping)
     const { blocks, entityMap } = editorContent;
     if (blocks && blocks.length > 0) {
       blocks.forEach((block) => {
