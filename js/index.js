@@ -318,7 +318,7 @@ export function addInlineStyleMarkdown(style: string, content: string): string {
   } else if (style === 'ITALIC') {
     return `*${content}*`;
   } else if (style === 'UNDERLINE') {
-    return `__${content}__`;
+    return `++${content}++`;
   } else if (style === 'STRIKETHROUGH') {
     return `~~${content}~~`;
   } else if (style === 'CODE') {
