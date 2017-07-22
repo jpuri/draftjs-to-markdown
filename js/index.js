@@ -51,7 +51,7 @@ function getEntityMarkdown(
     return `[${text}](${entity.data.url})`;
   }
   if (entity.type === 'IMAGE') {
-    return `!(${entity.data.src})`;
+    return `![${entity.data.alt || ''}](${entity.data.src})`;
   }
   if (entity.type === 'EMBEDDED_LINK') {
     return `<iframe width="${entity.data.width}" height="${entity.data.height}" src="${entity.data.src}" frameBorder="0" allowFullScreen />`;
