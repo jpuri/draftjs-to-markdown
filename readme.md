@@ -59,16 +59,17 @@ Following is the list of conversions it supports:
 
     || Block Type | Markdown |
     | -------- | -------- | -------- |
-    | 1 | header-one | # |
-    | 2 | header-two | ## |
-    | 3 | header-three | ### |
-    | 4 | header-four | #### |
-    | 5 | header-five | ##### |
-    | 6 | header-six | ###### |
-    | 7 | unordered-list-item | - |
-    | 8 | ordered-list-item | 1. |
-    | 9 | blockquote | > |
-    | 10 | unstyled |  |
+    | 1 | header-one | `#` |
+    | 2 | header-two | `##` |
+    | 3 | header-three | `###` |
+    | 4 | header-four | `####` |
+    | 5 | header-five | `#####` |
+    | 6 | header-six | `######` |
+    | 7 | unordered-list-item | `-` |
+    | 8 | ordered-list-item | `1.` |
+    | 9 | blockquote | `>` |
+    | 10 | code | `    ` |
+    | 11 | unstyled | `` |
 
     It performs these additional changes to text of blocks:
     - replace blank space in beginning and end of block with `&nbsp;`

@@ -16,6 +16,7 @@ let defaultBlockTypesMapping: Object = {
   'unordered-list-item': '- ',
   'ordered-list-item': '1. ',
   blockquote: '> ',
+  code: '    ',
 };
 
 /**
