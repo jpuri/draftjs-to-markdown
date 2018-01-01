@@ -9,7 +9,8 @@ module.exports = {
   output: {
     path: path.join(__dirname, '../lib'),
     filename: 'draftjs-to-markdown.js',
-    libraryTarget: 'commonjs2',
+    library: 'draftjsToMarkdown',
+    libraryTarget: 'umd',
   },
   plugins: [
     new webpack.DefinePlugin({
