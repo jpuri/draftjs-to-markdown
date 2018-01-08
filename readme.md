@@ -79,7 +79,7 @@ Following is the list of conversions it supports:
 
 2. Ordered and unordered list blocks with depths are appended with 4 blank spaces.
 
-3. Converts inline styles BOLD, ITALIC, UNDERLINE, STRIKETHROUGH, CODE, SUPERSCRIPT, SUBSCRIPT to corresponding markdown syntax: `**, *, __, ~~, ``, <sup>, <sub>`.
+3. Converts inline styles BOLD, ITALIC, UNDERLINE, STRIKETHROUGH, CODE, SUPERSCRIPT, SUBSCRIPT to corresponding markdown syntax: `**, *, ++, ~~, ``, <sup>, <sub>`.
 
 4. Converts inline styles color, background-color, font-size, font-family to a span tag with inline style details:
 `<span style="color:xyz;font-size:xx">`. (In the input JSON, inline styles should start with strings `color` or `font-size` like `color-red`, `color-green` or `fontsize-12`, `fontsize-20`).
