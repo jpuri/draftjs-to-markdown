@@ -10,19 +10,19 @@ This is draft to markdown library I wrote for one of my projects. I am open-sour
 
 ## Usage
 
-```
+```js
 import draftToMarkdown from 'draftjs-to-markdown';
-import { convertToRaw } from 'draft-js;
+import { convertToRaw } from 'draft-js';
 
 const rawContentState = convertToRaw(editorState.getCurrentContent());
 const markup = draftToMarkdown(contentState, hashConfig, customEntityTransform, config);
 ```
 The function parameters are:
 
-1. **contentState**: Its instance of  [RawDraftContentState](https://facebook.github.io/draft-js/docs/api-reference-data-conversion.html#content)
+1. **contentState**: Its instance of [RawDraftContentState](https://facebook.github.io/draft-js/docs/api-reference-data-conversion.html#content)
 
 2. **hashConfig**: Its configuration object for hashtag, its required only if hashtags are used. If the object is not defined hashtags will be output as simple text in the markdown.
-    ```
+    ```js
     hashConfig = {
       trigger: '#',
       separator: ' ',
@@ -33,14 +33,14 @@ The function parameters are:
 3. **customEntityTransform**: Its function to render custom defined entities by user, its also optional.
 
 4. **config**: Object to pass configuration options.
-    ```
+    ```js
     {
       blockTypesMapping : {/* mappings */},
       emptyLineBeforeBlock : true
     }
     ```
     blockTypesMapping overrides the default markdown syntax. For example, to use an asterisk rather than a dash for unordered-list-item:
-    ```
+    ```js
     {
       blockTypesMapping : {
         'unordered-list-item': '* '
@@ -49,7 +49,7 @@ The function parameters are:
     ```
     By default only one line break is added before a block. Pass ```emptyLineBeforeBlock: true``` to add two line breaks before every block.
 
-   **editorState** is instance of DraftJS               [EditorState](https://draftjs.org/docs/api-reference-editor-state.html#content).
+   **editorState** is instance of DraftJS [EditorState](https://draftjs.org/docs/api-reference-editor-state.html#content).
 
 
 ## Supported conversions
