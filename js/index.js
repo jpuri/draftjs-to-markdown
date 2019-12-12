@@ -1,28 +1,26 @@
-/* @flow */
-
-import { isEmptyString, forEach, isList } from "./common";
+import { isEmptyString, forEach, isList } from './common';
 
 /**
  * Mapping block-type to corresponding markdown symbol.
  */
-let defaultBlockTypesMapping: Object = {
-  unstyled: "",
-  "header-one": "# ",
-  "header-two": "## ",
-  "header-three": "### ",
-  "header-four": "#### ",
-  "header-five": "##### ",
-  "header-six": "###### ",
-  "unordered-list-item": "- ",
-  "ordered-list-item": "1. ",
-  blockquote: "> ",
-  code: "    "
+const defaultBlockTypesMapping = {
+  unstyled: '',
+  'header-one': '# ',
+  'header-two': '## ',
+  'header-three': '### ',
+  'header-four': '#### ',
+  'header-five': '##### ',
+  'header-six': '###### ',
+  'unordered-list-item': '- ',
+  'ordered-list-item': '1. ',
+  blockquote: '> ',
+  code: '    ',
 };
 
 /**
  * Function to check if the block is an atomic entity block.
  */
-function isAtomicBlock(block: Object): boolean {
+function isAtomicBlock(block) {
   if (block.entityRanges.length > 0 && isEmptyString(block.text)) {
     return true;
   }
@@ -32,29 +30,24 @@ function isAtomicBlock(block: Object): boolean {
 /**
  * Function will return markdown for Entity.
  */
-function getEntityMarkdown(
-  entityMap: Object,
-  entityKey: number,
-  text: string,
-  customEntityTransform: Function
-): string {
+function getEntityMarkdown(entityMap, entityKey, text, customEntityTransform) {
   const entity = entityMap[entityKey];
-  if (typeof customEntityTransform === "function") {
+  if (typeof customEntityTransform === 'function') {
     const html = customEntityTransform(entity, text);
     if (html) {
       return html;
     }
   }
-  if (entity.type === "MENTION") {
+  if (entity.type === 'MENTION') {
     return `[${text}](${entity.data.url})`;
   }
-  if (entity.type === "LINK") {
+  if (entity.type === 'LINK') {
     return `[${text}](${entity.data.url})`;
   }
-  if (entity.type === "IMAGE") {
-    return `![${entity.data.alt || ""}](${entity.data.src})`;
+  if (entity.type === 'IMAGE') {
+    return `![${entity.data.alt || ''}](${entity.data.src})`;
   }
-  if (entity.type === "EMBEDDED_LINK") {
+  if (entity.type === 'EMBEDDED_LINK') {
     return `<iframe width="${entity.data.width}" height="${entity.data.height}" src="${entity.data.src}" frameBorder="0" allowFullScreen />`;
   }
   return text;
@@ -64,18 +57,15 @@ function getEntityMarkdown(
  * The function returns an array of hashtag-sections in blocks.
  * These will be areas in block which have hashtags applicable to them.
  */
-function getHashtagRanges(
-  blockText: string,
-  hashConfig: Object
-): Array<Object> {
+function getHashtagRanges(blockText, hashConfig) {
   const sections = [];
   if (hashConfig) {
     let counter = 0;
     let startIndex = 0;
     let text = blockText;
-    const trigger = hashConfig.trigger || "#";
-    const separator = hashConfig.separator || " ";
-    for (; text.length > 0 && startIndex >= 0; ) {
+    const trigger = hashConfig.trigger || '#';
+    const separator = hashConfig.separator || ' ';
+    for (; text.length > 0 && startIndex >= 0;) {
       if (text[0] === trigger) {
         startIndex = 0;
         counter = 0;
@@ -88,14 +78,13 @@ function getHashtagRanges(
         }
       }
       if (startIndex >= 0) {
-        const endIndex =
-          text.indexOf(separator) >= 0 ? text.indexOf(separator) : text.length;
+        const endIndex =          text.indexOf(separator) >= 0 ? text.indexOf(separator) : text.length;
         const hashtagText = text.substr(0, endIndex);
         if (hashtagText && hashtagText.length > 0) {
           sections.push({
             offset: counter,
             length: hashtagText.length + trigger.length,
-            type: "HASHTAG"
+            type: 'HASHTAG',
           });
         }
         counter += trigger.length;
@@ -109,41 +98,41 @@ function getHashtagRanges(
  * The function returns an array of entity-sections in blocks.
  * These will be areas in block which have same entity or no entity applicable to them.
  */
-function getSections(block: Object, hashConfig: Object): Array<Object> {
+function getSections(block, hashConfig) {
   const sections = [];
   let lastOffset = 0;
-  let sectionRanges = block.entityRanges.map(range => {
+  let sectionRanges = block.entityRanges.map((range) => {
     const { offset, length, key } = range;
     return {
       offset,
       length,
       key,
-      type: "ENTITY"
+      type: 'ENTITY',
     };
   });
   sectionRanges = sectionRanges.concat(
-    getHashtagRanges(block.text, hashConfig)
+    getHashtagRanges(block.text, hashConfig),
   );
   sectionRanges = sectionRanges.sort((s1, s2) => s1.offset - s2.offset);
-  sectionRanges.forEach(r => {
+  sectionRanges.forEach((r) => {
     if (r.offset > lastOffset) {
       sections.push({
         start: lastOffset,
-        end: r.offset - 1
+        end: r.offset - 1,
       });
     }
     sections.push({
       start: r.offset,
       end: r.offset + r.length,
       entityKey: r.key,
-      type: r.type
+      type: r.type,
     });
     lastOffset = r.offset + r.length;
   });
   if (lastOffset < block.text.length) {
     sections.push({
       start: lastOffset,
-      end: block.text.length
+      end: block.text.length,
     });
   }
   return sections;
@@ -152,7 +141,7 @@ function getSections(block: Object, hashConfig: Object): Array<Object> {
 /**
  * The function will return array of inline styles applicable to the block.
  */
-function getStyleArrayForBlock(block: Object): Object {
+function getStyleArrayForBlock(block) {
   const { text, inlineStyleRanges } = block;
   const inlineStyles = {
     COLOR: new Array(text.length),
@@ -166,20 +155,20 @@ function getStyleArrayForBlock(block: Object): Object {
     UNDERLINE: new Array(text.length),
     ITALIC: new Array(text.length),
     BOLD: new Array(text.length),
-    length: text.length
+    length: text.length,
   };
   if (inlineStyleRanges && inlineStyleRanges.length > 0) {
-    inlineStyleRanges.forEach(range => {
-      const offset = range.offset;
+    inlineStyleRanges.forEach((range) => {
+      const { offset } = range;
       const length = offset + range.length;
       for (let i = offset; i < length; i += 1) {
-        if (range.style.indexOf("color-") === 0) {
+        if (range.style.indexOf('color-') === 0) {
           inlineStyles.COLOR[i] = range.style.substring(6);
-        } else if (range.style.indexOf("bgcolor-") === 0) {
+        } else if (range.style.indexOf('bgcolor-') === 0) {
           inlineStyles.BGCOLOR[i] = range.style.substring(8);
-        } else if (range.style.indexOf("fontsize-") === 0) {
+        } else if (range.style.indexOf('fontsize-') === 0) {
           inlineStyles.FONTSIZE[i] = range.style.substring(9);
-        } else if (range.style.indexOf("fontfamily-") === 0) {
+        } else if (range.style.indexOf('fontfamily-') === 0) {
           inlineStyles.FONTFAMILY[i] = range.style.substring(11);
         } else if (inlineStyles[range.style]) {
           inlineStyles[range.style][i] = true;
@@ -194,17 +183,12 @@ function getStyleArrayForBlock(block: Object): Object {
  * Function returns true for a set of styles if the value of these styles at an offset
  * are same as that on the previous offset.
  */
-export function sameStyleAsPrevious(
-  inlineStyles: Object,
-  styles: Array<string>,
-  index: number
-): boolean {
+export function sameStyleAsPrevious(inlineStyles, styles, index) {
   let sameStyled = true;
   if (index > 0 && index < inlineStyles.length) {
-    styles.forEach(style => {
-      sameStyled =
-        sameStyled &&
-        inlineStyles[style][index] === inlineStyles[style][index - 1];
+    styles.forEach((style) => {
+      sameStyled =        sameStyled
+        && inlineStyles[style][index] === inlineStyles[style][index - 1];
     });
   } else {
     sameStyled = false;
@@ -215,10 +199,7 @@ export function sameStyleAsPrevious(
 /**
  * The function will return inline style applicable at some offset within a block.
  */
-export function getStylesAtOffset(
-  inlineStyles: Object,
-  offset: number
-): Object {
+export function getStylesAtOffset(inlineStyles, offset) {
   const styles = {};
   if (inlineStyles.COLOR[offset]) {
     styles.COLOR = inlineStyles.COLOR[offset];
@@ -260,12 +241,7 @@ export function getStylesAtOffset(
  * For a given section in a block the function will return a further list of sections,
  * with similar inline styles applicable to them.
  */
-function getStyleSections(
-  block: Object,
-  styles: Array<string>,
-  start: number,
-  end: number
-): Array<Object> {
+function getStyleSections(block, styles, start, end) {
   const styleSections = [];
   const { text } = block;
   if (text.length > 0) {
@@ -282,7 +258,7 @@ function getStyleSections(
           styles: getStylesAtOffset(inlineStyles, i),
           text: [text[i]],
           start: i,
-          end: i + 1
+          end: i + 1,
         };
         styleSections.push(section);
       }
@@ -294,44 +270,50 @@ function getStyleSections(
 /**
  * The function returns text for given section of block after doing required character replacements.
  */
-function getSectionText(text: Array<string>): string {
+function getSectionText(text) {
   if (text && text.length > 0) {
-    const chars = text.map(ch => {
+    const chars = text.map((ch) => {
       switch (ch) {
-        case "\n":
-          return "\\s\\s\n";
-        case "&":
-          return "&amp;";
-        case "<":
-          return "&lt;";
-        case ">":
-          return "&gt;";
+        case '\n':
+          return '\\s\\s\n';
+        case '&':
+          return '&amp;';
+        case '<':
+          return '&lt;';
+        case '>':
+          return '&gt;';
         default:
           return ch;
       }
     });
-    return chars.join("");
+    return chars.join('');
   }
-  return "";
+  return '';
 }
 
 /**
  * Function returns markdown for inline style symbols.
  */
-export function addInlineStyleMarkdown(style: string, content: string): string {
-  if (style === "BOLD") {
+export function addInlineStyleMarkdown(style, content) {
+  if (style === 'BOLD') {
     return `**${content}**`;
-  } else if (style === "ITALIC") {
+  }
+  if (style === 'ITALIC') {
     return `*${content}*`;
-  } else if (style === "UNDERLINE") {
+  }
+  if (style === 'UNDERLINE') {
     return `__${content}__`;
-  } else if (style === "STRIKETHROUGH") {
+  }
+  if (style === 'STRIKETHROUGH') {
     return `~~${content}~~`;
-  } else if (style === "CODE") {
+  }
+  if (style === 'CODE') {
     return `\`${content}\``;
-  } else if (style === "SUPERSCRIPT") {
+  }
+  if (style === 'SUPERSCRIPT') {
     return `<sup>${content}</sup>`;
-  } else if (style === "SUBSCRIPT") {
+  }
+  if (style === 'SUBSCRIPT') {
     return `<sub>${content}</sub>`;
   }
   return content;
@@ -341,7 +323,7 @@ export function addInlineStyleMarkdown(style: string, content: string): string {
  * The method returns markup for section to which inline styles
  * BOLD, UNDERLINE, ITALIC, STRIKETHROUGH, CODE, SUPERSCRIPT, SUBSCRIPT are applicable.
  */
-function getStyleTagSectionMarkdown(styles: Object, text: string): string {
+function getStyleTagSectionMarkdown(styles, text) {
   let content = text;
   forEach(styles, (style, value) => {
     content = addInlineStyleMarkdown(style, content, value);
@@ -352,12 +334,12 @@ function getStyleTagSectionMarkdown(styles: Object, text: string): string {
 /**
  * Function returns html for text applying inline style in styles property in a span.
  */
-export function addStylePropertyMarkdown(styleSection: Object): string {
+export function addStylePropertyMarkdown(styleSection) {
   const { styles, text } = styleSection;
   const content = getSectionText(text);
   if (
-    styles &&
-    (styles.COLOR || styles.BGCOLOR || styles.FONTSIZE || styles.FONTFAMILY)
+    styles
+    && (styles.COLOR || styles.BGCOLOR || styles.FONTSIZE || styles.FONTFAMILY)
   ) {
     let styleString = 'style="';
     if (styles.COLOR) {
@@ -383,58 +365,53 @@ export function addStylePropertyMarkdown(styleSection: Object): string {
  * An entity section is a continuous section in a block
  * to which same entity or no entity is applicable.
  */
-function getSectionMarkdown(
-  block: Object,
-  entityMap: Object,
-  section: Object,
-  customEntityTransform: Function
-): string {
+function getSectionMarkdown(block, entityMap, section, customEntityTransform) {
   const entitySectionMarkdown = [];
   const styleSections = getStyleSections(
     block,
     [
-      "BOLD",
-      "ITALIC",
-      "UNDERLINE",
-      "STRIKETHROUGH",
-      "CODE",
-      "SUPERSCRIPT",
-      "SUBSCRIPT"
+      'BOLD',
+      'ITALIC',
+      'UNDERLINE',
+      'STRIKETHROUGH',
+      'CODE',
+      'SUPERSCRIPT',
+      'SUBSCRIPT',
     ],
     section.start,
-    section.end
+    section.end,
   );
-  let styleSectionText = "";
-  styleSections.forEach(styleSection => {
+  let styleSectionText = '';
+  styleSections.forEach((styleSection) => {
     const stylePropertySections = getStyleSections(
       block,
-      ["COLOR", "BGCOLOR", "FONTSIZE", "FONTFAMILY"],
+      ['COLOR', 'BGCOLOR', 'FONTSIZE', 'FONTFAMILY'],
       styleSection.start,
-      styleSection.end
+      styleSection.end,
     );
-    let stylePropertySectionText = "";
-    stylePropertySections.forEach(stylePropertySection => {
+    let stylePropertySectionText = '';
+    stylePropertySections.forEach((stylePropertySection) => {
       stylePropertySectionText += addStylePropertyMarkdown(
-        stylePropertySection
+        stylePropertySection,
       );
     });
     styleSectionText += getStyleTagSectionMarkdown(
       styleSection.styles,
-      stylePropertySectionText
+      stylePropertySectionText,
     );
   });
   entitySectionMarkdown.push(styleSectionText);
-  let sectionText = entitySectionMarkdown.join("");
-  if (section.type === "ENTITY") {
+  let sectionText = entitySectionMarkdown.join('');
+  if (section.type === 'ENTITY') {
     if (section.entityKey !== undefined && section.entityKey !== null) {
       sectionText = getEntityMarkdown(
         entityMap,
         section.entityKey,
         sectionText,
-        customEntityTransform
+        customEntityTransform,
       );
     }
-  } else if (section.type === "HASHTAG") {
+  } else if (section.type === 'HASHTAG') {
     sectionText = `[${sectionText}](${sectionText})`;
   }
   return sectionText;
@@ -443,12 +420,12 @@ function getSectionMarkdown(
 /**
  * Replace leading blank spaces by &nbsp;
  */
-export function trimLeadingZeros(sectionText: string): string {
+export function trimLeadingZeros(sectionText) {
   if (sectionText) {
     let replacedText = sectionText;
     for (let i = 0; i < replacedText.length; i += 1) {
-      if (sectionText[i] === " ") {
-        replacedText = replacedText.replace(" ", "&nbsp;");
+      if (sectionText[i] === ' ') {
+        replacedText = replacedText.replace(' ', '&nbsp;');
       } else {
         break;
       }
@@ -461,14 +438,14 @@ export function trimLeadingZeros(sectionText: string): string {
 /**
  * Replace trailing blank spaces by &nbsp;
  */
-export function trimTrailingZeros(sectionText: string): string {
+export function trimTrailingZeros(sectionText) {
   if (sectionText) {
     let replacedText = sectionText;
     for (let i = replacedText.length - 1; i >= 0; i -= 1) {
-      if (replacedText[i] === " ") {
+      if (replacedText[i] === ' ') {
         replacedText = `${replacedText.substring(
           0,
-          i
+          i,
         )}&nbsp;${replacedText.substring(i + 1)}`;
       } else {
         break;
@@ -483,17 +460,17 @@ export function trimTrailingZeros(sectionText: string): string {
  * Function will return the markdown for block content.
  */
 export function getBlockContentMarkdown(
-  block: Object,
-  entityMap: Object,
-  hashConfig: Object,
-  customEntityTransform: Function
-): string {
+  block,
+  entityMap,
+  hashConfig,
+  customEntityTransform,
+) {
   if (isAtomicBlock(block)) {
     return getEntityMarkdown(
       entityMap,
       block.entityRanges[0].key,
       undefined,
-      customEntityTransform
+      customEntityTransform,
     );
   }
   const blockMarkdown = [];
@@ -503,7 +480,7 @@ export function getBlockContentMarkdown(
       block,
       entityMap,
       section,
-      customEntityTransform
+      customEntityTransform,
     );
     if (index === 0) {
       sectionText = trimLeadingZeros(sectionText);
@@ -513,14 +490,14 @@ export function getBlockContentMarkdown(
     }
     blockMarkdown.push(sectionText);
   });
-  return blockMarkdown.join("");
+  return blockMarkdown.join('');
 }
 
 /**
  * Function will return style string for a block.
  */
-export function getBlockStyle(data: Object): string {
-  let styles = "";
+export function getBlockStyle(data) {
+  let styles = '';
   forEach(data, (key, value) => {
     styles += `${key}:${value};`;
   });
@@ -530,7 +507,7 @@ export function getBlockStyle(data: Object): string {
 /**
  * FUnciton will add <span> with style property aroung block content for block level text-styling.
  */
-function getBlockStyleProperty(blockData: Object, content: string) {
+function getBlockStyleProperty(blockData, content) {
   const blockStyle = getBlockStyle(blockData);
   if (blockStyle) {
     return `<span style="${blockStyle}">${content}</span>`;
@@ -542,36 +519,36 @@ function getBlockStyleProperty(blockData: Object, content: string) {
  * Function will return markdown for the block.
  */
 function getBlockMarkdown(
-  block: Object,
-  blockTypesMapping: Object,
-  entityMap: Object,
-  hashConfig: Object,
-  customEntityTransform: Function,
-  config: Object
-): string {
+  block,
+  blockTypesMapping,
+  entityMap,
+  hashConfig,
+  customEntityTransform,
+  config,
+) {
   const blockMarkdown = [];
   blockMarkdown.push(blockTypesMapping[block.type]);
   let blockContentMarkdown = getBlockContentMarkdown(
     block,
     entityMap,
     hashConfig,
-    customEntityTransform
+    customEntityTransform,
   );
   if (block.data) {
     blockContentMarkdown = getBlockStyleProperty(
       block.data,
-      blockContentMarkdown
+      blockContentMarkdown,
     );
   }
   blockMarkdown.push(blockContentMarkdown);
-  blockMarkdown.push(config && config.emptyLineBeforeBlock ? "\n\n" : "\n");
-  return blockMarkdown.join("");
+  blockMarkdown.push(config && config.emptyLineBeforeBlock ? '\n\n' : '\n');
+  return blockMarkdown.join('');
 }
 
-function getDepthPadding(depth: number) {
-  let padding = "";
+function getDepthPadding(depth) {
+  let padding = '';
   for (let i = 0; i < depth * 4; i += 1) {
-    padding += " ";
+    padding += ' ';
   }
   return padding;
 }
@@ -580,27 +557,27 @@ function getDepthPadding(depth: number) {
  * The function will generate markdown for given draftjs editorContent.
  */
 export default function draftToMarkdown(
-  editorContent: ContentState,
-  hashConfig: Object,
-  customEntityTransform: Function,
-  config: Object
-): string {
+  editorContent,
+  hashConfig,
+  customEntityTransform,
+  config,
+) {
   const markdown = [];
   if (editorContent) {
     const blockTypesMapping = {
       ...defaultBlockTypesMapping,
-      ...(config && config.blockTypesMapping && config.blockTypesMapping)
+      ...(config && config.blockTypesMapping && config.blockTypesMapping),
     };
     const { blocks, entityMap } = editorContent;
     if (blocks && blocks.length > 0) {
-      blocks.forEach(block => {
+      blocks.forEach((block) => {
         let content = getBlockMarkdown(
           block,
           blockTypesMapping,
           entityMap,
           hashConfig,
           customEntityTransform,
-          config
+          config,
         );
         if (isList(block.type)) {
           content = getDepthPadding(block.depth) + content;
@@ -609,5 +586,5 @@ export default function draftToMarkdown(
       });
     }
   }
-  return markdown.join("");
+  return markdown.join('');
 }
