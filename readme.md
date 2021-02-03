@@ -47,25 +47,27 @@ The function parameters are:
       },
     }
     ```
-    ```
     customStyleTransform replaces the inline syntax of standard styles. For example, to use a bold with an asterisk instead of a double asterisk maybe in the case of italico you may not want an asterisk but just an underline instead, while for the underline you choose two underlines.
     This need was due to the fact that the markdown used in Slack for example uses different rules from the conventional ones by default in the library. We have included the full standard example which is supported but you can change it to your default.
     ```js
     {
-      customStyleTransform : [
-        { BOLD: '**' },
-        { ITALIC: '*' },
-        { UNDERLINE: '__' },
-        { STRIKETHROUGH: '~~' },
-        { CODE: '`' },
-        { 'CODE-BLOCK': '```' },
-        { BLOCKQUOTE: '>' },
-        { SUPERSCRIPT: '<sup>' },
-        { SUBSCRIPT: '<sub>' },
-      ]
+      customStyleTransform : {
+        BOLD: '**',
+        ITALIC: '*',
+        UNDERLINE: '__',
+        STRIKETHROUGH: '~~',
+        CODE: '`',
+        'CODE-BLOCK': '```',
+        BLOCKQUOTE: '>',
+        SUPERSCRIPT: '<sup>',
+        SUBSCRIPT: '<sub>',
+      }
     }
     ```
     By default only one line break is added before a block. Pass ```emptyLineBeforeBlock: true``` to add two line breaks before every block.
+
+    By default, the \n line break character is not printed at the end of each line. 
+    Include in your config a ```printBreakLineLiteral: true``` to add this character \n at the end of each line.
 
    **editorState** is instance of DraftJS [EditorState](https://draftjs.org/docs/api-reference-editor-state.html#content).
 
