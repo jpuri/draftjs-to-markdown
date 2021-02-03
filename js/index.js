@@ -78,7 +78,7 @@ function getHashtagRanges(blockText, hashConfig) {
         }
       }
       if (startIndex >= 0) {
-        const endIndex =          text.indexOf(separator) >= 0 ? text.indexOf(separator) : text.length;
+        const endIndex = text.indexOf(separator) >= 0 ? text.indexOf(separator) : text.length;
         const hashtagText = text.substr(0, endIndex);
         if (hashtagText && hashtagText.length > 0) {
           sections.push({
@@ -187,7 +187,7 @@ export function sameStyleAsPrevious(inlineStyles, styles, index) {
   let sameStyled = true;
   if (index > 0 && index < inlineStyles.length) {
     styles.forEach((style) => {
-      sameStyled =        sameStyled
+      sameStyled = sameStyled
         && inlineStyles[style][index] === inlineStyles[style][index - 1];
     });
   } else {
@@ -295,26 +295,32 @@ function getSectionText(text) {
  * Function returns markdown for inline style symbols.
  */
 export function addInlineStyleMarkdown(style, content) {
-  if (style === 'BOLD') {
-    return `**${content}**`;
+  if (style.BOLD) {
+    return `${style.BOLD}${content}${style.BOLD}`;
   }
-  if (style === 'ITALIC') {
-    return `*${content}*`;
+  if (style.ITALIC) {
+    return `${style.ITALIC}${content}${style.ITALIC}`;
   }
-  if (style === 'UNDERLINE') {
-    return `__${content}__`;
+  if (style.UNDERLINE) {
+    return `${style.UNDERLINE}${content}${style.UNDERLINE}`;
   }
-  if (style === 'STRIKETHROUGH') {
-    return `~~${content}~~`;
+  if (style.STRIKETHROUGH) {
+    return `${style.STRIKETHROUGH}${content}${style.STRIKETHROUGH}`;
   }
-  if (style === 'CODE') {
-    return `\`${content}\``;
+  if (style.CODE) {
+    return `${style.CODE}${content}${style.CODE}`;
   }
-  if (style === 'SUPERSCRIPT') {
-    return `<sup>${content}</sup>`;
+  if (style['CODE-BLOCK']) {
+    return `${style['CODE-BLOCK']}${content}${style['CODE-BLOCK']}`;
   }
-  if (style === 'SUBSCRIPT') {
-    return `<sub>${content}</sub>`;
+  if (style.BLOCKQUOTE) {
+    return `${style.BLOCKQUOTE}${content}${style.BLOCKQUOTE}`;
+  }
+  if (style.SUPERSCRIPT) {
+    return `${style.SUPERSCRIPT}${content}${style.SUPERSCRIPT}`;
+  }
+  if (style.SUBSCRIPT) {
+    return `${style.SUBSCRIPT}${content}${style.SUBSCRIPT}`;
   }
   return content;
 }
@@ -365,18 +371,27 @@ export function addStylePropertyMarkdown(styleSection) {
  * An entity section is a continuous section in a block
  * to which same entity or no entity is applicable.
  */
-function getSectionMarkdown(block, entityMap, section, customEntityTransform) {
+function getSectionMarkdown(
+  block,
+  entityMap,
+  section,
+  customEntityTransform,
+  customStyleTransform,
+) {
   const entitySectionMarkdown = [];
   const styleSections = getStyleSections(
     block,
     [
-      'BOLD',
-      'ITALIC',
-      'UNDERLINE',
-      'STRIKETHROUGH',
-      'CODE',
-      'SUPERSCRIPT',
-      'SUBSCRIPT',
+      { BOLD: '**' },
+      { ITALIC: '*' },
+      { UNDERLINE: '__' },
+      { STRIKETHROUGH: '~~' },
+      { CODE: '`' },
+      { 'CODE-BLOCK': '```' },
+      { BLOCKQUOTE: '>' },
+      { SUPERSCRIPT: '<sup>' },
+      { SUBSCRIPT: '<sub>' },
+      ...customStyleTransform,
     ],
     section.start,
     section.end,
@@ -464,6 +479,7 @@ export function getBlockContentMarkdown(
   entityMap,
   hashConfig,
   customEntityTransform,
+  customStyleTransform,
 ) {
   if (isAtomicBlock(block)) {
     return getEntityMarkdown(
@@ -481,6 +497,7 @@ export function getBlockContentMarkdown(
       entityMap,
       section,
       customEntityTransform,
+      customStyleTransform,
     );
     if (index === 0) {
       sectionText = trimLeadingZeros(sectionText);
@@ -533,6 +550,7 @@ function getBlockMarkdown(
     entityMap,
     hashConfig,
     customEntityTransform,
+    config.customStyleTransform,
   );
   if (block.data) {
     blockContentMarkdown = getBlockStyleProperty(
