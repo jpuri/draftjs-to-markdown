@@ -547,7 +547,7 @@ function getBlockMarkdown(
 		entityMap,
 		hashConfig,
 		customEntityTransform,
-		config.customStyleTransform,
+		config?.customStyleTransform || {},
 	);
 	if (block.data) {
 		blockContentMarkdown = getBlockStyleProperty(
