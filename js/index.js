@@ -245,18 +245,19 @@ function getStyleSections(block, styles, start, end) {
   const styleSections = [];
   const { text } = block;
   if (text.length > 0) {
+    const symbols = [...text]
     const inlineStyles = getStyleArrayForBlock(block);
     let section;
     for (let i = start; i < end; i += 1) {
       if (i !== start && sameStyleAsPrevious(inlineStyles, styles, i)) {
         // $FlowFixMe
-        section.text.push(text[i]);
+        section.text.push(symbols[i]);
         // $FlowFixMe
         section.end = i + 1;
       } else {
         section = {
           styles: getStylesAtOffset(inlineStyles, i),
-          text: [text[i]],
+          text: [symbols[i]],
           start: i,
           end: i + 1,
         };
