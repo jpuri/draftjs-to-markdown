@@ -129,10 +129,10 @@ function getSections(block, hashConfig) {
     });
     lastOffset = r.offset + r.length;
   });
-  if (lastOffset < block.text.length) {
+  if (lastOffset < [...block.text].length) {
     sections.push({
       start: lastOffset,
-      end: block.text.length,
+      end: [...block.text].length,
     });
   }
   return sections;
