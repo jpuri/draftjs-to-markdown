@@ -247,7 +247,7 @@ function getStyleSections(block, styles, start, end) {
   if (text.length > 0) {
     const inlineStyles = getStyleArrayForBlock(block);
     let section;
-    for (let i = start; i < end; i += 1) {
+    for (let i = start; i <= end; i += 1) {
       if (i !== start && sameStyleAsPrevious(inlineStyles, styles, i)) {
         // $FlowFixMe
         section.text.push(text[i]);
