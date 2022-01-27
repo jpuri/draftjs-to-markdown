@@ -292,29 +292,66 @@ function getSectionText(text) {
 }
 
 /**
+ * Function that fixes incorrect lenght to applied styles and emoji break #10
+ */
+function fixStyle(content, style) {
+  const fixes = {
+    bold: ['**', '**'],
+    italic: ['*', '*'],
+    underline: ['__', '__'],
+    strikethrough: ['~~', '~~'],
+    code: ['\`', '\`'],
+    superscript: ['<sup>', '</sup>'],
+    subscript: ['<sub>', '</sub>']
+  }
+
+  const regexEmoji = /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/gi;
+  const hasEmoji = regexEmoji.test(content)
+
+  if (hasEmoji) {   
+    return content.replace(/\__|\*\*|\*|~~|\`|\<sup\>|\<\/sup\>|\<sub\>|\<\/sub\>/gi, '')
+  }
+
+  const firstLetter = content.charAt(0);
+  const lastLetter = content.charAt(content.length - 1);
+
+  const trimmed = content.trim()
+
+  if (firstLetter === ' ') {
+    return ` ${fixes[style][0]}${trimmed}${fixes[style][1]}`
+  } else if (lastLetter === ' ') {
+    return `${fixes[style][0]}${trimmed}${fixes[style][1]} `
+  } else if (firstLetter === ' ' && lastLetter === ' ') {
+    return ` ${fixes[style][0]}${trimmed}${fixes[style][1]} `
+  } else {
+    return `${fixes[style][0]}${content}${fixes[style][1]}`
+  }
+}
+
+/**
  * Function returns markdown for inline style symbols.
  */
 export function addInlineStyleMarkdown(style, content) {
   if (style === 'BOLD') {
-    return `**${content}**`;
+    return fixStyle(content, 'bold');
   }
   if (style === 'ITALIC') {
-    return `*${content}*`;
+    return fixStyle(content, 'italic');
   }
   if (style === 'UNDERLINE') {
-    return `__${content}__`;
+    return fixStyle(content, 'underline');
   }
   if (style === 'STRIKETHROUGH') {
-    return `~~${content}~~`;
+    return fixStyle(content, 'strikethrough');
   }
   if (style === 'CODE') {
-    return `\`${content}\``;
+    return fixStyle(content, 'code')
   }
   if (style === 'SUPERSCRIPT') {
-    return `<sup>${content}</sup>`;
+    return fixStyle(content, 'superscript')
   }
   if (style === 'SUBSCRIPT') {
-    return `<sub>${content}</sub>`;
+    return fixStyle(content, 'subscript')
   }
   return content;
 }
