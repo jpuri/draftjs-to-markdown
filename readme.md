@@ -6,12 +6,12 @@ This is draft to markdown library I wrote for one of my projects. I am open-sour
 
 ## Installation
 
-`npm install draftjs-to-markdown`
+`npm install draftjs-to-markdown-v2`
 
 ## Usage
 
 ```js
-import draftToMarkdown from 'draftjs-to-markdown';
+import draftToMarkdown from 'draftjs-to-markdown-v2';
 import { convertToRaw } from 'draft-js';
 
 const rawContentState = convertToRaw(editorState.getCurrentContent());
