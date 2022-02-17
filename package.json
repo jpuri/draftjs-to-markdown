@@ -4,7 +4,7 @@
   "main": "lib/draftjs-to-markdown-v2.js",
   "author": "Walisson Rodrigo",
   "license": "MIT",
-  "version": "1.0.1",
+  "version": "1.0",
   "devDependencies": {
     "@babel/core": "^7.17.5",
     "@babel/preset-env": "^7.16.11",
