@@ -1,18 +1,15 @@
 var path = require("path");
 var webpack = require("webpack");
-const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 
 module.exports = {
   devtool: "source-map",
+  mode: 'production',
   entry: ["./js/index"],
   output: {
     path: path.join(__dirname, "../lib"),
     filename: "draftjs-to-markdown.js",
     library: "draftjsToMarkdown",
     libraryTarget: "umd"
-  },
-  optimization: {
-    minimizer: [new UglifyJsPlugin()]
   },
   plugins: [
     new webpack.DefinePlugin({
