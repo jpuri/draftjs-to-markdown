@@ -7,8 +7,8 @@ module.exports = {
   entry: ["./js/index"],
   output: {
     path: path.join(__dirname, "../lib"),
-    filename: "draftjs-to-markdown.js",
-    library: "draftjsToMarkdown",
+    filename: "draftjs-to-markdown-v2.js",
+    library: "draftjsToMarkdownV2",
     libraryTarget: "umd"
   },
   plugins: [
