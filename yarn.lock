@@ -4289,8 +4289,9 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
 
 qs@~6.2.0:
-  version "6.2.1"
-  resolved "https://registry.yarnpkg.com/qs/-/qs-6.2.1.tgz#ce03c5ff0935bc1d9d69a9f14cbd18e568d67625"
+  version "6.2.4"
+  resolved "https://registry.yarnpkg.com/qs/-/qs-6.2.4.tgz#d90821bb8537cecc140e6c34f54ec76e54b39b22"
+  integrity sha512-E57gmgKXqDda+qWTkUJgIwgJICK7zgMfqZZopTRKZ6mY9gzLlmJN9EpXNnDrTxXFlOM/a+I28kJkF/60rqgnYw==
 
 querystring-es3@^0.2.0:
   version "0.2.1"
